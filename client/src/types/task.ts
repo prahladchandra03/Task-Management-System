@@ -1,0 +1,9 @@
+export type Status = "PENDING" | "COMPLETED";
+
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  status: Status;
+  createdAt: string;
+}

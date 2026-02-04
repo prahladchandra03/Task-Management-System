@@ -1,0 +1,46 @@
+datasource db {
+  provider = "postgresql"
+ //url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String   // bcrypt se hashed password store hoga [cite: 16]
+  firstName     String?
+  lastName      String?
+  refreshTokens RefreshToken[]
+  tasks         Task[]   // User aur Tasks ke beech relation 
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  title       String   // Title search ke liye [cite: 22]
+  description String?
+  status      Status   @default(PENDING) // Filtering ke liye [cite: 22]
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique // Long-lived refresh token 
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+enum Status {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
