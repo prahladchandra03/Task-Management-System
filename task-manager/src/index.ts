@@ -31,7 +31,7 @@ app.use('/api', router);
 
 // Root route
 app.get('/', (req: Request, res: Response) => {
-  res.json({
+  res.send({
     activeStatus: true,
     error: false,
   });
