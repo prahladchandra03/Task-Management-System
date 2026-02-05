@@ -1,7 +1,8 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import router from './routes/index.js';
+import { error } from 'console';
 
 dotenv.config();
 
@@ -27,6 +28,13 @@ app.use(express.json()); // Body parser for JSON
 
 // API Routes
 app.use('/api', router);
+app.get('/', (req: Request, res: Response) => {
+  res.json({
+    activeStatus: true,
+    error: false,
+  });
+});
+
 
 // Error Handling Middleware (Basic)
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
