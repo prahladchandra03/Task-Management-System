@@ -19,7 +19,8 @@ app.use(cors({
     const allowedOrigins = [
       'http://localhost:3000',
       'http://172.20.10.7:3000',
-      process.env.FRONTEND_URL // Baad mein .env mein URL daal dena
+      process.env.FRONTEND_URL, // Vercel Env Variable
+      'https://task-management-system-7mtg.vercel.app' // Aapka Frontend Domain
     ];
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
@@ -31,11 +32,6 @@ app.use(cors({
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true 
-}));
-
-app.use(cors({
-  origin: true, 
-  credentials: true
 }));
 
 app.use(express.json());
