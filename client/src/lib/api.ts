@@ -1,6 +1,6 @@
 import axios, { InternalAxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://task-management-system-5-cx3p.onrender.com/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 // 1. Check if running in browser
 const isBrowser = typeof window !== "undefined";
