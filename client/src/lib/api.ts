@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { InternalAxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
 
 // 1. Apna Backend URL set karein
 // Local development ke liye localhost, Production ke liye Vercel URL use karein
@@ -13,7 +13,7 @@ const api = axios.create({
 
 // 2. Request Interceptor: Request bhejne se pehle ye chalta hai
 api.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem("accessToken");
     
     // Debugging ke liye: Console me check karein ki token mil raha hai ya nahi
@@ -26,17 +26,17 @@ api.interceptors.request.use(
     
     return config;
   },
-  (error) => Promise.reject(error)
+  (error: AxiosError) => Promise.reject(error)
 );
 
 // 3. Response Interceptor: Error handle karne ke liye
 api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
+  (response: AxiosResponse) => response,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
     // Agar error 401 (Unauthorized) hai aur humne already retry nahi kiya hai
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       console.log("🔄 Token expired! Attempting refresh...");
       originalRequest._retry = true;
 
