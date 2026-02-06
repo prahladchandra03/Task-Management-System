@@ -21,7 +21,8 @@ app.use(cors({
       'http://172.20.10.7:3000',
       process.env.FRONTEND_URL, // Vercel Env Variable
       'https://task-management-system-7mtg.vercel.app', // Aapka Frontend Domain
-      'https://task-management-system-7mtg-qnhfk8d3s.vercel.app' // Aapka specific deployment URL
+      'https://task-management-system-7mtg-qnhfk8d3s.vercel.app', // Aapka specific deployment URL
+      'https://task-management-system-6-ljjt.onrender.com' // Aapka naya Render Frontend URL
     ];
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
