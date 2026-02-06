@@ -28,34 +28,44 @@ export const getTasks = async (req: any, res: Response) => {
 
 // 2. Create Task [cite: 24]
 export const createTask = async (req: any, res: Response) => {
-  const { title, description } = req.body;
-  if (!title) return res.status(400).json({ error: "Title is required" });
+  try {
+    const { title, description } = req.body;
+    if (!title) return res.status(400).json({ error: "Title is required" });
 
-  const task = await prisma.task.create({
-    data: {
-      title,
-      description,
-      userId: req.user.userId
-    }
-  });
-  res.status(201).json(task);
+    const task = await prisma.task.create({
+      data: {
+        title,
+        description,
+        userId: req.user.userId
+      }
+    });
+    res.status(201).json(task);
+  } catch (error) {
+    console.error("Create Task Error:", error);
+    res.status(500).json({ error: "Failed to create task" });
+  }
 };
 
 // 3. Toggle Task Status [cite: 25]
 export const toggleTask = async (req: any, res: Response) => {
-  const { id } = req.params;
-  
-  const task = await prisma.task.findUnique({ where: { id } });
-  if (!task || task.userId !== req.user.userId) {
-    return res.status(404).json({ error: "Task not found" });
+  try {
+    const { id } = req.params;
+    
+    const task = await prisma.task.findUnique({ where: { id } });
+    if (!task || task.userId !== req.user.userId) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    const updatedTask = await prisma.task.update({
+      where: { id },
+      data: { status: task.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED' }
+    });
+
+    res.json(updatedTask);
+  } catch (error) {
+    console.error("Toggle Task Error:", error);
+    res.status(500).json({ error: "Failed to update status" });
   }
-
-  const updatedTask = await prisma.task.update({
-    where: { id },
-    data: { status: task.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED' }
-  });
-
-  res.json(updatedTask);
 };
 
 // 4. Delete Task [cite: 24]
