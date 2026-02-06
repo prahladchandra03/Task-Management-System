@@ -1,7 +1,5 @@
 import axios, { InternalAxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
 
-// 1. Apna Backend URL set karein
-// Local development ke liye localhost, Production ke liye Vercel URL use karein
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://task-management-system-5-cx3p.onrender.com/api"; 
 
 const api = axios.create({
@@ -66,7 +64,13 @@ api.interceptors.response.use(
         // Agar refresh bhi fail ho jaye, to logout kar do
         console.log("❌ Refresh failed. Logging out.");
         localStorage.clear();
-        window.location.href = "/auth/login";
+        
+        // Jab server live ho (production) to specific URL pe bhejein
+        if (process.env.NODE_ENV === 'production') {
+          window.location.href = "https://task-management-system-6-ljjt.onrender.com/auth/login";
+        } else {
+          window.location.href = "/auth/login";
+        }
       }
     }
     return Promise.reject(error);
