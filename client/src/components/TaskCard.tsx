@@ -14,10 +14,10 @@ interface TaskCardProps {
 export default function TaskCard({ task, onToggle, onDelete, onEdit }: TaskCardProps) {
 
   const getNextStatus = (status: Task['status']) => {
-    if (status === 'PENDING') return 'IN_PROGRESS';
-    if (status === 'IN_PROGRESS') return 'COMPLETED';
-    return 'PENDING';
-  }
+    if (status === "PENDING") return "IN_PROGRESS" as any;
+    if ((status as string) === "IN_PROGRESS") return "COMPLETED";
+    return "PENDING";
+  };
 
   return (
     <div className="p-4 border rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow">
@@ -37,12 +37,12 @@ export default function TaskCard({ task, onToggle, onDelete, onEdit }: TaskCardP
           className={`text-xs flex items-center gap-1 px-2 py-1 rounded border ${
             task.status === 'COMPLETED' 
               ? 'bg-green-50 text-green-700 border-green-200' 
-              : task.status === 'IN_PROGRESS'
+              : (task.status as string) === 'IN_PROGRESS'
               ? 'bg-blue-50 text-blue-700 border-blue-200'
               : 'bg-yellow-50 text-yellow-700 border-yellow-200'
           }`}
         >
-          {task.status === 'COMPLETED' ? <CheckCircle size={14} /> : task.status === 'IN_PROGRESS' ? <Clock size={14} /> : <Circle size={14} />}
+          {task.status === 'COMPLETED' ? <CheckCircle size={14} /> : (task.status as string) === 'IN_PROGRESS' ? <Clock size={14} /> : <Circle size={14} />}
           {task.status}
         </button>
         
