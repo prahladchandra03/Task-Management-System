@@ -1,7 +1,8 @@
 import axios from "axios";
 
 // 1. Apna Backend URL set karein
-const API_URL = "http://172.20.10.7:5000/api"; 
+// Local development ke liye localhost, Production ke liye Vercel URL use karein
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://task-management-system-7mtg-qnhfk8d3s.vercel.app/api"; 
 
 const api = axios.create({
   baseURL: API_URL,
