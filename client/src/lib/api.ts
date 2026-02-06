@@ -2,7 +2,7 @@ import axios, { InternalAxiosRequestConfig, AxiosResponse, AxiosError } from "ax
 
 // 1. Apna Backend URL set karein
 // Local development ke liye localhost, Production ke liye Vercel URL use karein
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://task-management-system-7mtg-qnhfk8d3s.vercel.app/api"; 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://task-management-system-5-cx3p.onrender.com/api"; 
 
 const api = axios.create({
   baseURL: API_URL,
