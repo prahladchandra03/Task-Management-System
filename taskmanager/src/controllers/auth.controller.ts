@@ -4,11 +4,12 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 const generateTokens = (userId: string) => {
-  if (!process.env.JWT_SECRET) throw new Error("JWT_SECRET is missing");
-  if (!process.env.JWT_REFRESH_SECRET) throw new Error("JWT_REFRESH_SECRET is missing");
+  // Render/Production ke liye Env vars use karein, nahi to fallback (Localhost)
+  const accessTokenSecret = process.env.JWT_SECRET || "fallback_secret_change_me_in_prod";
+  const refreshTokenSecret = process.env.JWT_REFRESH_SECRET || "fallback_refresh_secret_change_me_in_prod";
 
-  const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '15m' });
-  const refreshToken = jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+  const accessToken = jwt.sign({ userId }, accessTokenSecret, { expiresIn: '15m' });
+  const refreshToken = jwt.sign({ userId }, refreshTokenSecret, { expiresIn: '7d' });
   return { accessToken, refreshToken };
 };
 
