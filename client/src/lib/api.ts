@@ -1,6 +1,9 @@
 import axios, { InternalAxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://task-management-system-5-cx3p.onrender.com/api"; 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://task-management-system-5-cx3p.onrender.com/api";
+
+// 1. Check if running in browser
+const isBrowser = typeof window !== "undefined";
 
 const api = axios.create({
   baseURL: API_URL,
@@ -9,70 +12,98 @@ const api = axios.create({
   },
 });
 
-// 2. Request Interceptor: Request bhejne se pehle ye chalta hai
+// Refresh Token variables
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+// Helper function to process the queue
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) prom.reject(error);
+    else prom.resolve(token);
+  });
+  failedQueue = [];
+};
+
+// --- LOGOUT HELPER ---
+export const logoutUser = () => {
+  if (isBrowser) {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    // Aap chaho to localStorage.clear() bhi kar sakte ho
+    window.location.href = "/auth/login";
+  }
+};
+
+// --- REQUEST INTERCEPTOR ---
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem("accessToken");
-    
-    // Debugging ke liye: Console me check karein ki token mil raha hai ya nahi
-    if (token) {
-      console.log("🟢 Attaching Token to request:", config.url); // Ye line console me dikhegi
-      config.headers.Authorization = `Bearer ${token}`;
-    } else {
-      console.log("🔴 No Token found for request:", config.url);
+    if (isBrowser) {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
-    
     return config;
   },
   (error: AxiosError) => Promise.reject(error)
 );
 
-// 3. Response Interceptor: Error handle karne ke liye
+// --- RESPONSE INTERCEPTOR ---
 api.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    // Debugging: 403 Error ka detail log karein taaki pata chale server kya bol raha hai
-    if (error.response?.status === 403) {
-      console.error("⛔ 403 Forbidden Error Details:", error.response.data);
-    }
+    // 1. Handle 401 Unauthorized (Token Expired)
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // Agar pehle se ek refresh request chal rahi hai, toh baaki sab queue me daldo
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
 
-    // Agar error 401 (Unauthorized) hai aur humne already retry nahi kiya hai
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
-      console.log("🔄 Token expired! Attempting refresh...");
       originalRequest._retry = true;
+      isRefreshing = true;
 
       try {
-        const refreshToken = localStorage.getItem("refreshToken");
-        if (!refreshToken) throw new Error("No refresh token");
+        const refreshToken = isBrowser ? localStorage.getItem("refreshToken") : null;
+        if (!refreshToken) throw new Error("No Refresh Token Found");
 
-        // Naya access token mangwana
+        // Request new access token using refresh token
         const { data } = await axios.post(`${API_URL}/auth/refresh-token`, {
           token: refreshToken,
         });
 
-        console.log("✅ Token Refreshed!");
+        const newToken = data.accessToken;
+        if (isBrowser) localStorage.setItem("accessToken", newToken);
 
-        // Naya token save karna
-        localStorage.setItem("accessToken", data.accessToken);
-
-        // Fail hui request ko naye token ke sath dobara bhejna
-        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
-        return api(originalRequest);
-      } catch (refreshError) {
-        // Agar refresh bhi fail ho jaye, to logout kar do
-        console.log("❌ Refresh failed. Logging out.");
-        localStorage.clear();
+        processQueue(null, newToken);
         
-        // Jab server live ho (production) to specific URL pe bhejein
-        if (process.env.NODE_ENV === 'production') {
-          window.location.href = "https://task-management-system-6-ljjt.onrender.com/auth/login";
-        } else {
-          window.location.href = "/auth/login";
-        }
+        // Retry the original request with new token
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return api(originalRequest);
+
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        logoutUser(); // Token refresh fail hua toh direct logout
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
+
+    // 2. Handle 403 Forbidden (Permission Issue)
+    if (error.response?.status === 403) {
+      console.error("⛔ Access Denied: You don't have permission.");
+    }
+
     return Promise.reject(error);
   }
 );

@@ -55,10 +55,11 @@ export default function Dashboard() {
       // Cleanup & Refresh
       setIsModalOpen(false);
       fetchTasks(); // ✅ List ko refresh karein
-    } catch (error: any) {
+        } catch (error: any) {
       console.error(error);
-      toast.error(isEditing ? "Failed to update" : "Failed to create task");
-    }
+            const errorMessage = error.response?.data?.error || error.message || "Something went wrong";
+            toast.error(isEditing ? `Update failed: ${errorMessage}` : `Creation failed: ${errorMessage}`);
+        }
   };
 
   const handleToggle = async (id: string, status: Task["status"]) => {
