@@ -35,6 +35,11 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
+    // Debugging: 403 Error ka detail log karein taaki pata chale server kya bol raha hai
+    if (error.response?.status === 403) {
+      console.error("⛔ 403 Forbidden Error Details:", error.response.data);
+    }
+
     // Agar error 401 (Unauthorized) hai aur humne already retry nahi kiya hai
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       console.log("🔄 Token expired! Attempting refresh...");
